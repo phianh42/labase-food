@@ -1,0 +1,58 @@
+<!-- app/views/meal_planning/index.html.erb -->
+<h1 class="text-4xl font-bold uppercase mb-8 border-b-4 border-black pb-2">Meal Planning</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+  <div>
+    <h2 class="text-2xl font-bold uppercase mb-4 border-b-2 border-black pb-2">Upcoming Meals</h2>
+    <div class="space-y-4">
+      <% @upcoming_meals.each do |meal| %>
+        <div class="border-2 border-black p-4">
+          <h3 class="font-bold uppercase">
+            <%= link_to meal.display_name, meal_path(meal), class: "hover:underline" %>
+          </h3>
+          <p class="text-sm uppercase">GUESTS: <%= meal.guests.pluck(:name).join(", ") %></p>
+          <p class="text-sm">
+            <%= meal.courses.count %> courses, 
+            <%= meal.all_recipes.count %> recipes
+          </p>
+        </div>
+      <% end %>
+      <% if @upcoming_meals.empty? %>
+        <p class="italic">No upcoming meals planned.</p>
+      <% end %>
+    </div>
+  </div>
+  
+  <div>
+    <h2 class="text-2xl font-bold uppercase mb-4 border-b-2 border-black pb-2">Recent Meals</h2>
+    <div class="space-y-4">
+      <% @recent_meals.each do |meal| %>
+        <div class="border-2 border-black p-4">
+          <h3 class="font-bold uppercase">
+            <%= link_to meal.display_name, meal_path(meal), class: "hover:underline" %>
+          </h3>
+          <p class="text-sm uppercase">GUESTS: <%= meal.guests.pluck(:name).join(", ") %></p>
+          <div class="mt-2">
+            <%= link_to "DUPLICATE FOR PLANNING", duplicate_meal_path(meal), method: :post,
+                class: "text-sm underline" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="mt-8 border-4 border-black p-6">
+  <h2 class="text-2xl font-bold uppercase mb-4">Get Suggestions</h2>
+  <%= form_with url: suggestions_meal_planning_index_path, method: :get, class: "flex gap-4 items-end" do |f| %>
+    <div class="flex-1">
+      <%= f.label :guest_id, "FOR GUEST", class: "block uppercase font-bold mb-2" %>
+      <%= f.select :guest_id, 
+          options_from_collection_for_select(current_user.guests.alphabetical, :id, :name),
+          { include_blank: "All guests" },
+          class: "w-full border-2 border-black p-2" %>
+    </div>
+    <%= f.submit "GET SUGGESTIONS", class: "border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white cursor-pointer" %>
+  <% end %>
+</div>
+

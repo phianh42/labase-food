@@ -1,0 +1,64 @@
+<!-- app/views/meals/index.html.erb -->
+<div class="flex justify-between items-center mb-8">
+  <h1 class="text-4xl font-bold uppercase border-b-4 border-black pb-2">Meals</h1>
+  <div class="flex gap-2">
+    <%= link_to "PLAN MEALS", meal_planning_index_path, class: "border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white" %>
+    <%= link_to "NEW MEAL", new_meal_path, class: "border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white" %>
+  </div>
+</div>
+
+<div class="mb-6">
+  <%= form_with url: meals_path, method: :get, class: "flex gap-4 items-end" do |f| %>
+    <div>
+      <%= f.label :meal_type, "TYPE", class: "block uppercase font-bold mb-1" %>
+      <%= f.select :meal_type, options_for_select([['All', ''], ['Breakfast', 'breakfast'], ['Lunch', 'lunch'], ['Dinner', 'dinner'], ['Snack', 'snack']], params[:meal_type]), 
+                   {}, class: "border-2 border-black p-2" %>
+    </div>
+    <div>
+      <%= f.label :start_date, "FROM", class: "block uppercase font-bold mb-1" %>
+      <%= f.date_field :start_date, value: params[:start_date], class: "border-2 border-black p-2" %>
+    </div>
+    <div>
+      <%= f.label :end_date, "TO", class: "block uppercase font-bold mb-1" %>
+      <%= f.date_field :end_date, value: params[:end_date], class: "border-2 border-black p-2" %>
+    </div>
+    <%= f.submit "FILTER", class: "border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white cursor-pointer" %>
+  <% end %>
+</div>
+
+<div class="space-y-4">
+  <% @meals.each do |meal| %>
+    <div class="border-4 border-black p-6">
+      <div class="flex justify-between items-start">
+        <div class="flex-1">
+          <h2 class="text-2xl font-bold uppercase mb-2">
+            <%= link_to meal.display_name, meal_path(meal), class: "hover:underline" %>
+          </h2>
+          <p class="uppercase mb-2">
+            GUESTS: <%= meal.guests.pluck(:name).join(", ") %>
+          </p>
+          <div class="space-y-1">
+            <% meal.courses.each do |course| %>
+              <p>
+                <span class="font-bold uppercase"><%= course.name %>:</span>
+                <%= course.recipes.pluck(:title).join(", ") %>
+              </p>
+            <% end %>
+          </div>
+          <% if meal.notes.present? %>
+            <p class="mt-2 text-sm italic"><%= truncate(meal.notes, length: 150) %></p>
+          <% end %>
+        </div>
+        <div class="flex gap-2 ml-4">
+          <%= link_to "EDIT", edit_meal_path(meal), class: "border-2 border-black px-3 py-1 text-sm uppercase hover:bg-black hover:text-white" %>
+          <%= link_to "DUPLICATE", duplicate_meal_path(meal), method: :post, class: "border-2 border-black px-3 py-1 text-sm uppercase hover:bg-black hover:text-white" %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<div class="mt-8 flex justify-center">
+  <%= paginate @meals %>
+</div>
+

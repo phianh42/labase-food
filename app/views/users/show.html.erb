@@ -1,0 +1,90 @@
+<!-- app/views/users/show.html.erb -->
+<div class="max-w-6xl mx-auto">
+  <div class="border-4 border-black p-8 mb-8">
+    <div class="flex items-start gap-8">
+      <% if @user.avatar.attached? %>
+        <%= image_tag @user.avatar, class: "w-32 h-32 object-cover border-4 border-black" %>
+      <% else %>
+        <div class="w-32 h-32 bg-gray-200 border-4 border-black flex items-center justify-center">
+          <span class="text-4xl uppercase"><%= @user.username.first %></span>
+        </div>
+      <% end %>
+      
+      <div class="flex-1">
+        <h1 class="text-4xl font-bold uppercase mb-4"><%= @user.username %></h1>
+        
+        <% if @user.bio.present? %>
+          <p class="mb-4"><%= @user.bio %></p>
+        <% end %>
+        
+        <div class="flex gap-4 text-sm uppercase">
+          <span><%= @user.recipes.count %> RECIPES</span>
+          <span>JOINED <%= @user.created_at.strftime("%Y-%m-%d") %></span>
+        </div>
+        
+        <% if user_signed_in? && current_user == @user %>
+          <div class="mt-4">
+            <%= link_to "EDIT PROFILE", edit_user_path(@user), class: "border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white inline-block" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+  <div>
+    <h2 class="text-2xl font-bold uppercase mb-6 border-b-4 border-black pb-2">Recipes</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @recipes.each do |recipe| %>
+        <div class="border-4 border-black">
+          <% if recipe.image.attached? %>
+            <%= image_tag recipe.image, class: "w-full h-48 object-cover" %>
+          <% else %>
+            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+              <span class="text-2xl uppercase">No Image</span>
+            </div>
+          <% end %>
+          
+          <div class="p-4">
+            <h3 class="text-xl font-bold uppercase mb-2">
+              <%= link_to recipe.title, recipe, class: "hover:underline" %>
+            </h3>
+            
+            <% unless recipe.is_public? %>
+              <span class="bg-black text-white px-2 py-1 text-xs uppercase">PRIVATE</span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <% if user_signed_in? && current_user == @user && @favorite_recipes.present? %>
+    <div class="mt-12">
+      <h2 class="text-2xl font-bold uppercase mb-6 border-b-4 border-black pb-2">Favorite Recipes</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% @favorite_recipes.each do |recipe| %>
+          <div class="border-4 border-black">
+            <% if recipe.image.attached? %>
+              <%= image_tag recipe.image, class: "w-full h-48 object-cover" %>
+            <% else %>
+              <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                <span class="text-2xl uppercase">No Image</span>
+              </div>
+            <% end %>
+            
+            <div class="p-4">
+              <h3 class="text-xl font-bold uppercase mb-2">
+                <%= link_to recipe.title, recipe, class: "hover:underline" %>
+              </h3>
+              
+              <p class="text-sm uppercase">BY <%= link_to recipe.user.username, user_path(recipe.user), class: "underline" %></p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+

@@ -1,0 +1,52 @@
+<!-- app/views/meal_planning/suggestions.html.erb -->
+<h1 class="text-4xl font-bold uppercase mb-8 border-b-4 border-black pb-2">
+  Recipe Suggestions <%= "for #{@guest.name}" if @guest %>
+</h1>
+
+<% if @guest %>
+  <div class="mb-8 border-2 border-black p-4">
+    <h2 class="text-xl font-bold uppercase mb-2">Guest Profile</h2>
+    <p><%= @guest.name %> has tried <%= @guest.recipes_tried.count %> of your recipes.</p>
+    <% if @guest.comments.present? %>
+      <p class="mt-2"><strong>Notes:</strong> <%= @guest.comments %></p>
+    <% end %>
+  </div>
+<% end %>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+  <div>
+    <h2 class="text-2xl font-bold uppercase mb-4 border-b-2 border-black pb-2">
+      <%= @guest ? "Recipes #{@guest.name} Hasn't Tried" : "Least Recently Used Recipes" %>
+    </h2>
+    <div class="space-y-2">
+      <% @suggested_recipes.each do |recipe| %>
+        <div class="border-2 border-black p-3 hover:bg-gray-100">
+          <%= link_to recipe.title, recipe_path(recipe), class: "font-bold hover:underline" %>
+          <% if recipe.tags.any? %>
+            <div class="mt-1">
+              <% recipe.tags.each do |tag| %>
+                <span class="text-xs bg-gray-200 px-1"><%= tag.name %></span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <% if @guest && @popular_combinations.any? %>
+    <div>
+      <h2 class="text-2xl font-bold uppercase mb-4 border-b-2 border-black pb-2">
+        Popular Combinations for <%= @guest.name %>
+      </h2>
+      <div class="space-y-2">
+        <% @popular_combinations.each do |recipe| %>
+          <div class="border-2 border-black p-3">
+            <p class="font-bold"><%= recipe.title %></p>
+            <p class="text-sm">Served <%= recipe.meal_count %> times</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

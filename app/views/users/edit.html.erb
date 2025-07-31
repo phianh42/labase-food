@@ -1,0 +1,39 @@
+<!-- app/views/users/edit.html.erb -->
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-4xl font-bold uppercase mb-8 border-b-4 border-black pb-2">Edit Profile</h1>
+  
+  <%= form_with(model: @user, local: true) do |form| %>
+    <% if @user.errors.any? %>
+      <div class="border-2 border-red-600 p-4 mb-6 bg-red-100">
+        <h2 class="font-bold uppercase mb-2"><%= pluralize(@user.errors.count, "error") %> prohibited this profile from being saved:</h2>
+        <ul class="list-disc list-inside">
+          <% @user.errors.each do |error| %>
+            <li><%= error.full_message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <div class="space-y-6">
+      <div>
+        <%= form.label :username, class: "block uppercase font-bold mb-2" %>
+        <%= form.text_field :username, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+      </div>
+      
+      <div>
+        <%= form.label :bio, class: "block uppercase font-bold mb-2" %>
+        <%= form.text_area :bio, rows: 5, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+      </div>
+      
+      <div>
+        <%= form.label :avatar, class: "block uppercase font-bold mb-2" %>
+        <%= form.file_field :avatar, class: "w-full border-2 border-black p-2" %>
+      </div>
+      
+      <div class="flex justify-between">
+        <%= form.submit "UPDATE PROFILE", class: "border-4 border-black px-8 py-3 uppercase font-bold hover:bg-black hover:text-white cursor-pointer" %>
+        <%= link_to "CANCEL", @user, class: "border-4 border-gray-600 px-8 py-3 uppercase font-bold hover:bg-gray-600 hover:text-white" %>
+      </div>
+    </div>
+  <% end %>
+</div>

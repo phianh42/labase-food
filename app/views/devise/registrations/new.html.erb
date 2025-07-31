@@ -1,0 +1,41 @@
+<!-- app/views/devise/registrations/new.html.erb -->
+<div class="max-w-md mx-auto">
+  <h2 class="text-4xl font-bold uppercase mb-8 border-b-4 border-black pb-2">Register</h2>
+
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <div class="space-y-6">
+      <div>
+        <%= f.label :username, class: "block uppercase font-bold mb-2" %>
+        <%= f.text_field :username, autofocus: true, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+      </div>
+
+      <div>
+        <%= f.label :email, class: "block uppercase font-bold mb-2" %>
+        <%= f.email_field :email, autocomplete: "email", class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+      </div>
+
+      <div>
+        <%= f.label :password, class: "block uppercase font-bold mb-2" %>
+        <% if @minimum_password_length %>
+          <em class="text-sm">(<%= @minimum_password_length %> characters minimum)</em>
+        <% end %>
+        <%= f.password_field :password, autocomplete: "new-password", class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+      </div>
+
+      <div>
+        <%= f.label :password_confirmation, class: "block uppercase font-bold mb-2" %>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+      </div>
+
+      <div>
+        <%= f.submit "REGISTER", class: "w-full border-4 border-black px-8 py-3 uppercase font-bold hover:bg-black hover:text-white cursor-pointer" %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="mt-8 text-center">
+    <%= link_to "ALREADY HAVE AN ACCOUNT? LOGIN", new_session_path(resource_name), class: "uppercase hover:underline" %>
+  </div>
+</div>

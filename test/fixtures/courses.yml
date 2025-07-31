@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  meal: one
+  name: MyString
+  order_number: 1
+
+two:
+  meal: two
+  name: MyString
+  order_number: 1

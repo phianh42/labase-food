@@ -1,0 +1,38 @@
+<!-- app/views/guests/_form.html.erb -->
+<%= form_with(model: guest) do |form| %>
+  <% if guest.errors.any? %>
+    <div class="border-2 border-red-600 p-4 mb-6 bg-red-100">
+      <h2 class="font-bold uppercase mb-2"><%= pluralize(guest.errors.count, "error") %> prohibited this guest from being saved:</h2>
+      <ul class="list-disc list-inside">
+        <% guest.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="space-y-6">
+    <div>
+      <%= form.label :name, class: "block uppercase font-bold mb-2" %>
+      <%= form.text_field :name, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+    </div>
+
+    <div>
+      <%= form.label :comments, class: "block uppercase font-bold mb-2" %>
+      <%= form.text_area :comments, rows: 4, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600", 
+          placeholder: "Dietary restrictions, preferences, notes..." %>
+    </div>
+
+    <div>
+      <%= form.label :is_household_member, class: "inline-flex items-center" %>
+      <%= form.check_box :is_household_member, class: "mr-2" %>
+      <span class="uppercase">Household/Family Member</span>
+    </div>
+
+    <div class="flex justify-between">
+      <%= form.submit class: "border-4 border-black px-8 py-3 uppercase font-bold hover:bg-black hover:text-white cursor-pointer" %>
+      <%= link_to "CANCEL", guests_path, class: "border-4 border-gray-600 px-8 py-3 uppercase font-bold hover:bg-gray-600 hover:text-white" %>
+    </div>
+  </div>
+<% end %>
+

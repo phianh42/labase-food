@@ -1,0 +1,15 @@
+default:
+  selector: textarea.tinymce
+  height: 300
+  menubar: false
+  plugins:
+    - link
+    - lists
+    - searchreplace
+    - wordcount
+    - code
+    - table
+    - autoresize
+  toolbar: undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link | code
+  content_style: "body { font-family: monospace; font-size: 14px; line-height: 1.6; }"
+  branding: false

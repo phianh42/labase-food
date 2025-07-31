@@ -1,0 +1,51 @@
+<!-- app/views/admin/ingredient_dictionaries/_form.html.erb -->
+<%= form_with(model: [:admin, ingredient], local: true) do |form| %>
+  <% if ingredient.errors.any? %>
+    <div class="border-2 border-red-600 p-4 mb-6 bg-red-100">
+      <h2 class="font-bold uppercase mb-2"><%= pluralize(ingredient.errors.count, "erreur") %></h2>
+      <ul class="list-disc list-inside">
+        <% ingredient.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="space-y-6">
+    <div>
+      <%= form.label :name, "NOM", class: "block uppercase font-bold mb-2" %>
+      <%= form.text_field :name, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+    </div>
+
+    <div>
+      <%= form.label :plural_form, "FORME PLURIELLE", class: "block uppercase font-bold mb-2" %>
+      <%= form.text_field :plural_form, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+    </div>
+
+    <div>
+      <%= form.label :category, "CATÉGORIE", class: "block uppercase font-bold mb-2" %>
+      <%= form.select :category, options_for_select(IngredientDictionary::CATEGORIES, ingredient.category), 
+                      { include_blank: false }, 
+                      class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+    </div>
+
+    <div>
+      <%= form.label :gender, "GENRE (M/F)", class: "block uppercase font-bold mb-2" %>
+      <%= form.select :gender, options_for_select([['Masculin', 'm'], ['Féminin', 'f']], ingredient.gender), 
+                      { include_blank: true }, 
+                      class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+    </div>
+
+    <div>
+      <%= form.label :approved, class: "inline-flex items-center" %>
+      <%= form.check_box :approved, class: "mr-2" %>
+      <span class="uppercase">Approuvé</span>
+    </div>
+
+    <div class="flex justify-between">
+      <%= form.submit class: "border-4 border-black px-8 py-3 uppercase font-bold hover:bg-black hover:text-white cursor-pointer" %>
+      <%= link_to "ANNULER", admin_ingredient_dictionaries_path, class: "border-4 border-gray-600 px-8 py-3 uppercase font-bold hover:bg-gray-600 hover:text-white" %>
+    </div>
+  </div>
+<% end %>
+

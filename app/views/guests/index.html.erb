@@ -1,0 +1,58 @@
+<!-- app/views/guests/index.html.erb -->
+<div class="flex justify-between items-center mb-8">
+  <h1 class="text-4xl font-bold uppercase border-b-4 border-black pb-2">Guests</h1>
+  <%= link_to "ADD GUEST", new_guest_path, class: "border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white" %>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+  <div>
+    <h2 class="text-2xl font-bold uppercase mb-4 border-b-2 border-black pb-2">Household Members</h2>
+    <div class="space-y-2">
+      <% @household_members.each do |guest| %>
+        <div class="border-2 border-black p-4 hover:bg-gray-100">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-bold uppercase">
+                <%= link_to guest.name, guest_path(guest), class: "hover:underline" %>
+              </h3>
+              <p class="text-sm">MEALS: <%= guest.meals_attended_count %></p>
+              <% if guest.comments.present? %>
+                <p class="text-sm mt-1"><%= truncate(guest.comments, length: 100) %></p>
+              <% end %>
+            </div>
+            <div class="flex gap-2">
+              <%= link_to "EDIT", edit_guest_path(guest), class: "text-sm underline" %>
+              <%= link_to "REPORT", by_guest_reports_path(guest_id: guest.id), class: "text-sm underline" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <div>
+    <h2 class="text-2xl font-bold uppercase mb-4 border-b-2 border-black pb-2">Other Guests</h2>
+    <div class="space-y-2">
+      <% @external_guests.each do |guest| %>
+        <div class="border-2 border-black p-4 hover:bg-gray-100">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-bold uppercase">
+                <%= link_to guest.name, guest_path(guest), class: "hover:underline" %>
+              </h3>
+              <p class="text-sm">MEALS: <%= guest.meals_attended_count %></p>
+              <% if guest.comments.present? %>
+                <p class="text-sm mt-1"><%= truncate(guest.comments, length: 100) %></p>
+              <% end %>
+            </div>
+            <div class="flex gap-2">
+              <%= link_to "EDIT", edit_guest_path(guest), class: "text-sm underline" %>
+              <%= link_to "REPORT", by_guest_reports_path(guest_id: guest.id), class: "text-sm underline" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+

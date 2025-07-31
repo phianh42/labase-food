@@ -1,0 +1,527 @@
+<!-- app/views/recipes/_form.html.erb -->
+
+<%= form_with(model: recipe) do |form| %>
+  <% if recipe.errors.any? %>
+    <div class="border-2 border-red-600 p-4 mb-6 bg-red-100">
+      <h2 class="font-bold uppercase mb-2"><%= pluralize(recipe.errors.count, "erreur") %> ont empêché la sauvegarde de cette recette :</h2>
+      <ul class="list-disc list-inside">
+        <% recipe.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="space-y-6">
+    <div>
+      <%= form.label :title, "TITRE", class: "block uppercase font-bold mb-2" %>
+      <%= form.text_field :title, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+    </div>
+
+    <div>
+      <%= form.label :description, "DESCRIPTION", class: "block uppercase font-bold mb-2" %>
+      <%= form.hidden_field :description %>
+      <div id="description-editor" class="border-2 border-black" style="height: 200px;"></div>
+    </div>
+
+    <div>
+      <%= form.label :image, "IMAGE", class: "block uppercase font-bold mb-2" %>
+      <%= form.file_field :image, class: "w-full border-2 border-black p-2" %>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div>
+        <%= form.label :preparation_time, "PRÉPARATION (MINUTES)", class: "block uppercase font-bold mb-2" %>
+        <%= form.number_field :preparation_time, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+      </div>
+
+      <div>
+        <%= form.label :cooking_time, "CUISSON (MINUTES)", class: "block uppercase font-bold mb-2" %>
+        <%= form.number_field :cooking_time, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+      </div>
+
+      <div>
+        <%= form.label :servings, "PERSONNES", class: "block uppercase font-bold mb-2" %>
+        <%= form.number_field :servings, class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+      </div>
+
+      <div>
+        <%= form.label :difficulty, "DIFFICULTÉ", class: "block uppercase font-bold mb-2" %>
+        <%= form.select :difficulty, options_for_select([['Facile', 'easy'], ['Moyen', 'medium'], ['Difficile', 'hard']], recipe.difficulty), 
+                        { include_blank: true }, 
+                        class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+      </div>
+    </div>
+
+    <div>
+      <%= form.label :tag_list, "TAGS (séparés par des virgules)", class: "block uppercase font-bold mb-2" %>
+      <%= form.text_field :tag_list, value: recipe.tag_list.join(', '), class: "w-full border-2 border-black p-2 focus:outline-none focus:border-gray-600" %>
+    </div>
+
+    <div>
+      <%= form.label :is_public, class: "inline-flex items-center" %>
+      <%= form.check_box :is_public, class: "mr-2" %>
+      <span class="uppercase">Rendre cette recette publique</span>
+    </div>
+
+    <div class="border-4 border-black p-6">
+      <h3 class="text-xl font-bold uppercase mb-4">Ingrédients</h3>
+      
+      <!-- Auto-parse button (only show if steps exist) -->
+      <% if @recipe.recipe_steps.any? || @recipe.new_record? %>
+        <button type="button" id="parse-ingredients-btn" 
+                class="border-2 border-green-600 text-green-600 px-4 py-2 uppercase hover:bg-green-600 hover:text-white mb-4">
+          <span id="parse-btn-text">Détecter automatiquement les ingrédients</span>
+          <span id="parse-spinner" class="hidden">Analyse en cours...</span>
+        </button>
+      <% end %>
+      
+      <!-- Detected ingredients container -->
+      <div id="detected-ingredients" class="hidden mb-4 p-4 bg-gray-100 border-2 border-black">
+        <h4 class="font-bold uppercase mb-2">Ingrédients détectés:</h4>
+        <div id="detected-list" class="space-y-2"></div>
+        <div class="mt-4 flex gap-2">
+          <button type="button" onclick="addAllDetected()" 
+                  class="border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white">
+            Ajouter tous
+          </button>
+          <button type="button" onclick="clearDetected()" 
+                  class="border-2 border-gray-600 px-4 py-2 uppercase hover:bg-gray-600 hover:text-white">
+            Effacer
+          </button>
+        </div>
+      </div>
+      
+      <!-- Manual ingredient fields -->
+      <div id="ingredients">
+        <%= form.fields_for :ingredients do |ingredient| %>
+          <%= render 'ingredient_fields', f: ingredient %>
+        <% end %>
+      </div>
+      
+      <button type="button" onclick="addIngredient()" 
+              class="border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white">
+        Ajouter un ingrédient
+      </button>
+    </div>
+
+    <div class="border-4 border-black p-6">
+      <h3 class="text-xl font-bold uppercase mb-4">Instructions</h3>
+      <div id="recipe_steps">
+        <%= form.fields_for :recipe_steps do |step| %>
+          <div class="recipe-step-fields mb-4 p-4 border-2 border-gray-400">
+            <div class="grid grid-cols-12 gap-4">
+              <div class="col-span-2">
+                <%= step.label :step_number, "ÉTAPE #", class: "block uppercase font-bold mb-2" %>
+                <%= step.number_field :step_number, class: "w-full border-2 border-black p-2" %>
+              </div>
+              
+              <div class="col-span-10">
+                <%= step.label :instruction, "INSTRUCTION", class: "block uppercase font-bold mb-2" %>
+                <%= step.hidden_field :instruction %>
+                <div class="quill-editor border-2 border-black" style="height: 150px;" data-step-index="<%= step.index %>"></div>
+              </div>
+            </div>
+            
+            <%= step.check_box :_destroy, class: "mt-2" %>
+            <%= step.label :_destroy, "Enlever étape", class: "uppercase" %>
+          </div>
+        <% end %>
+      </div>
+      
+      <button type="button" onclick="addStep()" class="border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white">
+        Ajouter Étape
+      </button>
+    </div>
+
+    <div class="flex justify-between">
+      <%= form.submit recipe.persisted? ? "MODIFIER RECETTE" : "CRÉER RECETTE", class: "border-4 border-black px-8 py-3 uppercase font-bold hover:bg-black hover:text-white cursor-pointer" %>
+      <%= link_to "ANNULER", recipes_path, class: "border-4 border-gray-600 px-8 py-3 uppercase font-bold hover:bg-gray-600 hover:text-white" %>
+    </div>
+  </div>
+<% end %>
+
+<script>
+// Recipe Form with Quill.js
+document.addEventListener('DOMContentLoaded', function() {
+  initializePage();
+});
+
+document.addEventListener('turbo:load', function() {
+  initializePage();
+});
+
+function initializePage() {
+  initializeQuillEditors();
+  initializeParsingButton();
+  setupFormSubmission();
+}
+
+// Quill.js Initialization
+let quillEditors = {};
+
+function initializeQuillEditors() {
+  if (typeof Quill === 'undefined') {
+    console.log('Quill not loaded yet, retrying...');
+    setTimeout(initializeQuillEditors, 100);
+    return;
+  }
+
+  // Initialize description editor
+  const descriptionContainer = document.getElementById('description-editor');
+  if (descriptionContainer && !quillEditors.description) {
+    quillEditors.description = new Quill('#description-editor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          ['bold', 'italic'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          ['link']
+        ]
+      }
+    });
+
+    // Set initial content
+    const descriptionField = document.querySelector('input[name="recipe[description]"]');
+    if (descriptionField && descriptionField.value) {
+      quillEditors.description.root.innerHTML = descriptionField.value;
+    }
+  }
+
+  // Initialize existing step editors
+  document.querySelectorAll('.quill-editor').forEach(function(editorElement) {
+    const stepIndex = editorElement.dataset.stepIndex;
+    const editorId = `step-${stepIndex}`;
+    
+    if (!quillEditors[editorId]) {
+      quillEditors[editorId] = new Quill(editorElement, {
+        theme: 'snow',
+        modules: {
+          toolbar: [
+            ['bold', 'italic'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link']
+          ]
+        }
+      });
+
+      // Set initial content
+      const hiddenField = editorElement.parentElement.querySelector('input[type="hidden"]');
+      if (hiddenField && hiddenField.value) {
+        quillEditors[editorId].root.innerHTML = hiddenField.value;
+      }
+    }
+  });
+}
+
+function setupFormSubmission() {
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', function() {
+      // Sync description editor
+      if (quillEditors.description) {
+        const descriptionField = document.querySelector('input[name="recipe[description]"]');
+        if (descriptionField) {
+          descriptionField.value = quillEditors.description.root.innerHTML;
+        }
+      }
+
+      // Sync step editors
+      Object.keys(quillEditors).forEach(function(editorId) {
+        if (editorId.startsWith('step-')) {
+          const stepIndex = editorId.replace('step-', '');
+          const hiddenField = document.querySelector(`input[name="recipe[recipe_steps_attributes][${stepIndex}][instruction]"]`);
+          if (hiddenField && quillEditors[editorId]) {
+            hiddenField.value = quillEditors[editorId].root.innerHTML;
+          }
+        }
+      });
+    });
+  }
+}
+
+// Constants
+const ALL_UNITS = <%= raw Ingredient::ALL_UNITS.to_json %>;
+let detectedIngredients = [];
+
+// Add ingredient functionality
+function addIngredient() {
+  const container = document.getElementById('ingredients');
+  const existingIngredients = container.querySelectorAll('.ingredient-fields');
+  const idx = existingIngredients.length;
+
+  const options = ALL_UNITS.map(u => `<option value="${u}">${u}</option>`).join('');
+
+  const html = `
+    <div class="ingredient-fields mb-4 p-4 border-2 border-gray-400">
+      <div class="grid grid-cols-4 gap-4">
+        <div>
+          <label class="block uppercase font-bold mb-2">QUANTITÉ</label>
+          <input type="number" step="any"
+                 name="recipe[ingredients_attributes][${idx}][quantity]"
+                 class="w-full border-2 border-black p-2">
+        </div>
+        <div>
+          <label class="block uppercase font-bold mb-2">UNITÉ</label>
+          <select name="recipe[ingredients_attributes][${idx}][unit]"
+                  class="w-full border-2 border-black p-2">
+            <option value=""></option>
+            ${options}
+          </select>
+        </div>
+        <div class="col-span-2">
+          <label class="block uppercase font-bold mb-2">INGRÉDIENT</label>
+          <input type="text"
+                 name="recipe[ingredients_attributes][${idx}][name]"
+                 class="w-full border-2 border-black p-2">
+        </div>
+      </div>
+      <div class="mt-2">
+        <input type="checkbox"
+               name="recipe[ingredients_attributes][${idx}][_destroy]"
+               value="1" style="display: none;">
+        <label class="uppercase cursor-pointer hover:text-red-600"
+               onclick="this.previousElementSibling.checked = true; this.closest('.ingredient-fields').style.display = 'none';">
+          RETIRER INGRÉDIENT
+        </label>
+      </div>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', html);
+}
+
+// Add step functionality
+function addStep() {
+  const container = document.getElementById('recipe_steps');
+  const existingSteps = container.querySelectorAll('.recipe-step-fields');
+  const idx = existingSteps.length;
+  const number = idx + 1;
+
+  const html = `
+    <div class="recipe-step-fields mb-4 p-4 border-2 border-gray-400">
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-2">
+          <label class="block uppercase font-bold mb-2">ÉTAPE #</label>
+          <input type="number"
+                 name="recipe[recipe_steps_attributes][${idx}][step_number]"
+                 value="${number}"
+                 class="w-full border-2 border-black p-2">
+        </div>
+        <div class="col-span-10">
+          <label class="block uppercase font-bold mb-2">INSTRUCTION</label>
+          <input type="hidden" name="recipe[recipe_steps_attributes][${idx}][instruction]">
+          <div class="quill-editor border-2 border-black" style="height: 150px;" data-step-index="${idx}"></div>
+        </div>
+      </div>
+      <div class="mt-2">
+        <input type="checkbox"
+               name="recipe[recipe_steps_attributes][${idx}][_destroy]"
+               value="1" style="display: none;">
+        <label class="uppercase cursor-pointer hover:text-red-600"
+               onclick="this.previousElementSibling.checked = true; this.closest('.recipe-step-fields').style.display = 'none';">
+          ENLEVER ÉTAPE
+        </label>
+      </div>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', html);
+
+  // Initialize Quill on new editor
+  setTimeout(function() {
+    const newEditor = container.lastElementChild.querySelector('.quill-editor');
+    const editorId = `step-${idx}`;
+    
+    quillEditors[editorId] = new Quill(newEditor, {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          ['bold', 'italic'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          ['link']
+        ]
+      }
+    });
+  }, 100);
+}
+
+// Ingredient parsing functionality (same as before)
+function initializeParsingButton() {
+  const parseBtn = document.getElementById('parse-ingredients-btn');
+  if (parseBtn) {
+    parseBtn.addEventListener('click', parseIngredients);
+  }
+}
+
+function parseIngredients() {
+  const btn = document.getElementById('parse-ingredients-btn');
+  const btnText = document.getElementById('parse-btn-text');
+  const spinner = document.getElementById('parse-spinner');
+  
+  if (!btn || !btnText || !spinner) return;
+  
+  // Show loading state
+  btn.disabled = true;
+  btnText.classList.add('hidden');
+  spinner.classList.remove('hidden');
+  
+  // Collect recipe steps text from Quill editors
+  const steps = [];
+  Object.keys(quillEditors).forEach(function(editorId) {
+    if (editorId.startsWith('step-') && quillEditors[editorId]) {
+      const text = quillEditors[editorId].getText().trim();
+      if (text.length > 0) {
+        steps.push(text);
+      }
+    }
+  });
+  
+  // Get recipe ID if editing
+  const recipeId = '<%= @recipe.id || "new" %>';
+  const url = recipeId === 'new' 
+    ? '/recipes/parse_ingredients_preview' 
+    : `/recipes/${recipeId}/parse_ingredients`;
+  
+  // Send to server
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+    },
+    body: JSON.stringify({ 
+      steps_text: steps,
+      recipe_id: recipeId 
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      detectedIngredients = data.ingredients;
+      displayDetectedIngredients(data.ingredients, data.confidence);
+    } else {
+      alert('Erreur lors de l\'analyse: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Parse error:', error);
+    alert('Erreur de connexion lors de l\'analyse');
+  })
+  .finally(() => {
+    // Reset button state
+    btn.disabled = false;
+    btnText.classList.remove('hidden');
+    spinner.classList.add('hidden');
+  });
+}
+
+function displayDetectedIngredients(ingredients, confidence) {
+  const container = document.getElementById('detected-ingredients');
+  const list = document.getElementById('detected-list');
+  
+  if (!container || !list) return;
+  
+  if (ingredients.length === 0) {
+    list.innerHTML = '<p class="text-gray-600">Aucun ingrédient détecté. Essayez d\'ajouter plus de détails dans les étapes.</p>';
+  } else {
+    const confidenceText = confidence > 0.7 ? 'Excellente' : confidence > 0.5 ? 'Bonne' : 'Moyenne';
+    const confidenceColor = confidence > 0.7 ? 'text-green-600' : confidence > 0.5 ? 'text-yellow-600' : 'text-orange-600';
+    
+    list.innerHTML = `
+      <p class="mb-3 ${confidenceColor}">Confiance de détection: ${confidenceText} (${Math.round(confidence * 100)}%)</p>
+      ${ingredients.map(ing => `
+        <div class="mb-2 p-2 border border-gray-300 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" checked id="detected_${ing.id}" value="${ing.id}" class="detected-ingredient-checkbox">
+            <label for="detected_${ing.id}" class="flex-1">
+              <span class="font-semibold">${ing.quantity || ''} ${ing.unit || ''} ${ing.name}</span>
+              <span class="text-sm text-gray-600 ml-2">(${ing.category})</span>
+            </label>
+          </div>
+          <button type="button" onclick="addSingleDetected(${ing.id})"
+                  class="text-sm border border-black px-2 py-1 hover:bg-black hover:text-white">
+            AJOUTER
+          </button>
+        </div>
+      `).join('')}
+    `;
+  }
+  
+  container.classList.remove('hidden');
+}
+
+function addSingleDetected(ingredientId) {
+  const ingredient = detectedIngredients.find(ing => ing.id == ingredientId);
+  if (ingredient) {
+    addIngredientToForm(ingredient.name, ingredient.quantity, ingredient.unit);
+    
+    const checkbox = document.getElementById(`detected_${ingredient.id}`);
+    if (checkbox) {
+      checkbox.checked = false;
+      checkbox.disabled = true;
+    }
+  }
+}
+
+function addAllDetected() {
+  const checkboxes = document.querySelectorAll('.detected-ingredient-checkbox:checked');
+  
+  checkboxes.forEach(checkbox => {
+    const ingredient = detectedIngredients.find(ing => ing.id == checkbox.value);
+    if (ingredient) {
+      addIngredientToForm(ingredient.name, ingredient.quantity, ingredient.unit);
+      checkbox.checked = false;
+      checkbox.disabled = true;
+    }
+  });
+}
+
+function addIngredientToForm(name, quantity, unit) {
+  const ingredientsDiv = document.getElementById('ingredients');
+  const newIndex = ingredientsDiv.children.length;
+  
+  const options = ALL_UNITS.map(u => `<option value="${u}"${u === unit ? ' selected' : ''}>${u}</option>`).join('');
+  
+  const newIngredientHTML = `
+    <div class="ingredient-fields mb-4 p-4 border-2 border-gray-400">
+      <div class="grid grid-cols-4 gap-4">
+        <div>
+          <label class="block uppercase font-bold mb-2">QUANTITÉ</label>
+          <input type="number" step="any" name="recipe[ingredients_attributes][${newIndex}][quantity]" 
+                 value="${quantity || ''}" class="w-full border-2 border-black p-2">
+        </div>
+        <div>
+          <label class="block uppercase font-bold mb-2">UNITÉ</label>
+          <select name="recipe[ingredients_attributes][${newIndex}][unit]" class="w-full border-2 border-black p-2">
+            <option value=""></option>
+            ${options}
+          </select>
+        </div>
+        <div class="col-span-2">
+          <label class="block uppercase font-bold mb-2">NOM</label>
+          <input type="text" name="recipe[ingredients_attributes][${newIndex}][name]" 
+                 value="${name || ''}" class="w-full border-2 border-black p-2">
+        </div>
+      </div>
+      <div class="mt-2">
+        <input type="checkbox" name="recipe[ingredients_attributes][${newIndex}][_destroy]" value="1" style="display: none;">
+        <label class="uppercase cursor-pointer hover:text-red-600"
+               onclick="this.previousElementSibling.checked = true; this.closest('.ingredient-fields').style.display = 'none';">
+          SUPPRIMER INGRÉDIENT
+        </label>
+      </div>
+    </div>
+  `;
+  
+  ingredientsDiv.insertAdjacentHTML('beforeend', newIngredientHTML);
+}
+
+function clearDetected() {
+  const container = document.getElementById('detected-ingredients');
+  if (container) {
+    container.classList.add('hidden');
+  }
+  detectedIngredients = [];
+}
+</script>

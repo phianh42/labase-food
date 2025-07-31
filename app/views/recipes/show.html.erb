@@ -1,0 +1,129 @@
+<!-- app/views/recipes/show.html.erb -->
+<div class="max-w-4xl mx-auto">
+  <div class="border-4 border-black mb-8">
+    <% if @recipe.image.attached? %>
+      <%= image_tag @recipe.image, class: "w-full h-96 object-cover" %>
+    <% end %>
+    
+    <div class="p-8">
+      <h1 class="text-4xl font-bold uppercase mb-4"><%= @recipe.title %></h1>
+      
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <p class="uppercase mb-2">
+            PAR <%= link_to @recipe.user.username, user_path(@recipe.user), class: "underline" %>
+            | <%= @recipe.created_at.strftime("%Y-%m-%d") %>
+          </p>
+          
+          <% unless @recipe.is_public? %>
+            <span class="bg-black text-white px-2 py-1 text-xs uppercase">PRIVATE</span>
+          <% end %>
+        </div>
+        
+        <div class="flex gap-2">
+          <% if user_signed_in? %>
+            <% if current_user == @recipe.user %>
+              <%= link_to "MODIFIER", edit_recipe_path(@recipe), class: "border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white" %>
+              <%= link_to "SUPPRIMER", @recipe, method: :delete, data: { confirm: "Are you sure?" }, class: "border-2 border-red-600 text-red-600 px-4 py-2 uppercase hover:bg-red-600 hover:text-white" %>
+            <% else %>
+              <% favorite = current_user.favorites.find_by(recipe: @recipe) %>
+              <% if favorite %>
+                <%= link_to "UNFAVORITE", favorite_path(favorite), method: :delete, class: "border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white" %>
+              <% else %>
+                <%= form_with url: favorites_path, local: true do |f| %>
+                  <%= hidden_field_tag :recipe_id, @recipe.id %>
+                  <%= f.submit "FAVORITE", class: "border-2 border-black px-4 py-2 uppercase hover:bg-black hover:text-white cursor-pointer" %>
+                <% end %>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+      
+      <% if @recipe.tags.any? %>
+        <div class="flex flex-wrap gap-2 mb-6">
+          <% @recipe.tags.each do |tag| %>
+            <span class="bg-black text-white px-2 py-1 text-xs uppercase">
+              <%= link_to tag.name, recipes_path(tag: tag.name), class: "text-white" %>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+      
+      <div class="grid grid-cols-4 gap-4 mb-8 text-center">
+        <% if @recipe.preparation_time.present? %>
+          <div class="border-2 border-black p-4">
+            <p class="text-2xl font-bold"><%= @recipe.preparation_time %></p>
+            <p class="uppercase text-sm">MIN PREP</p>
+          </div>
+        <% end %>
+        
+        <% if @recipe.cooking_time.present? %>
+          <div class="border-2 border-black p-4">
+            <p class="text-2xl font-bold"><%= @recipe.cooking_time %></p>
+            <p class="uppercase text-sm">MIN COOK</p>
+          </div>
+        <% end %>
+        
+        <% if @recipe.servings.present? %>
+          <div class="border-2 border-black p-4">
+            <p class="text-2xl font-bold"><%= @recipe.servings %></p>
+            <p class="uppercase text-sm">SERVINGS</p>
+          </div>
+        <% end %>
+        
+        <% if @recipe.difficulty.present? %>
+          <div class="border-2 border-black p-4">
+            <p class="text-2xl font-bold uppercase"><%= @recipe.difficulty %></p>
+            <p class="uppercase text-sm">DIFFICULTY</p>
+          </div>
+        <% end %>
+      </div>
+      
+      <% if @recipe.description.present? %>
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold uppercase mb-4 border-b-2 border-black pb-2">Description</h2>
+          <div class="prose max-w-none">
+            <%= raw @recipe.description %>
+          </div>
+        </div>
+      <% end %>
+      
+      <% if @recipe.ingredients.any? %>
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold uppercase mb-4 border-b-2 border-black pb-2">Ingredients</h2>
+          <ul class="space-y-2">
+            <% @recipe.ingredients.each do |ingredient| %>
+              <li class="flex">
+                <span class="font-bold mr-2">•</span>
+                <span>
+                  <% if ingredient.quantity.present? %>
+                    <%= ingredient.quantity % 1 == 0 ? ingredient.quantity.to_i : ingredient.quantity %>
+                  <% end %>
+                  <%= " #{ingredient.unit}" if ingredient.unit.present? %>
+                  <%= " #{ingredient.name}" %>
+                </span>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      
+      <% if @recipe.recipe_steps.any? %>
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold uppercase mb-4 border-b-2 border-black pb-2">Instructions</h2>
+          <ol class="space-y-4">
+            <% @recipe.recipe_steps.each do |step| %>
+              <li class="flex">
+                <span class="font-bold text-2xl mr-4"><%= step.step_number %>.</span>
+                <div class="prose max-w-none">
+                  <%= raw step.instruction %>
+                </div>
+              </li>
+            <% end %>
+          </ol>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

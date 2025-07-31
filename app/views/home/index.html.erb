@@ -1,0 +1,83 @@
+<!-- app/views/home/index.html.erb -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+  <div class="md:col-span-2">
+    <h1 class="text-4xl font-bold uppercase mb-8 border-b-4 border-black pb-2">Recent Recipes</h1>
+    
+    <div class="space-y-6">
+      <% @recent_recipes.each do |recipe| %>
+        <div class="border-4 border-black hover:bg-gray-100 transition-colors">
+          <div class="flex">
+            <!-- Recipe Image -->
+            <div class="w-32 h-32 flex-shrink-0">
+              <% if recipe.image.attached? %>
+                <%= image_tag recipe.image, class: "w-full h-full object-cover" %>
+              <% else %>
+                <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <span class="text-xs uppercase font-bold text-gray-600">No Image</span>
+                </div>
+              <% end %>
+            </div>
+            
+            <!-- Recipe Content -->
+            <div class="flex-1 p-6">
+              <h2 class="text-2xl font-bold uppercase mb-2">
+                <%= link_to recipe.title, recipe, class: "hover:underline" %>
+              </h2>
+              
+              <div class="text-sm uppercase mb-2">
+                BY <%= link_to recipe.user.username, user_path(recipe.user), class: "underline" %>
+                | <%= recipe.created_at.strftime("%Y-%m-%d") %>
+              </div>
+              
+              <!-- Recipe Meta Info -->
+              <div class="flex gap-4 text-xs uppercase mb-3 text-gray-600">
+                <% if recipe.preparation_time.present? %>
+                  <span>PREP: <%= recipe.preparation_time %>MIN</span>
+                <% end %>
+                <% if recipe.cooking_time.present? %>
+                  <span>COOK: <%= recipe.cooking_time %>MIN</span>
+                <% end %>
+                <% if recipe.servings.present? %>
+                  <span>SERVES: <%= recipe.servings %></span>
+                <% end %>
+                <% if recipe.difficulty.present? %>
+                  <span><%= recipe.difficulty.upcase %></span>
+                <% end %>
+              </div>
+              
+              <!-- Recipe Description Preview -->
+              <% if recipe.description.present? %>
+                <div class="text-sm mb-3 text-gray-700">
+                  <%= truncate(strip_tags(recipe.description), length: 120) %>
+                </div>
+              <% end %>
+              
+              <!-- Tags -->
+              <% if recipe.tags.any? %>
+                <div class="flex flex-wrap gap-2">
+                  <% recipe.tags.each do |tag| %>
+                    <span class="bg-black text-white px-2 py-1 text-xs uppercase">
+                      <%= link_to tag.name, recipes_path(tag: tag.name), class: "text-white hover:underline" %>
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <div>
+    <h2 class="text-2xl font-bold uppercase mb-4 border-b-4 border-black pb-2">Categories</h2>
+    
+    <div class="space-y-2">
+      <% @categories.each do |category| %>
+        <div class="border-2 border-black p-3 hover:bg-gray-100">
+          <%= link_to category.name.upcase, recipes_path(category: category), class: "block" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

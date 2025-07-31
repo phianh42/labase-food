@@ -1,0 +1,23 @@
+<!-- app/views/recipes/_ingredient_fields.html.erb -->
+<div class="ingredient-fields mb-4 p-4 border-2 border-gray-400">
+  <div class="grid grid-cols-4 gap-4">
+    <div>
+      <%= f.label :quantity, "QUANTITÉ", class: "block uppercase font-bold mb-2" %>
+      <%= f.number_field :quantity, step: :any, class: "w-full border-2 border-black p-2" %>
+    </div>
+    <div>
+      <%= f.label :unit, "UNITÉ", class: "block uppercase font-bold mb-2" %>
+      <%= f.select :unit, options_for_select(Ingredient::ALL_UNITS.map { |u| [u, u] }, f.object.unit), 
+                  { include_blank: true }, 
+                  class: "w-full border-2 border-black p-2" %>
+    </div>
+    <div class="col-span-2">
+      <%= f.label :name, "INGRÉDIENT", class: "block uppercase font-bold mb-2" %>
+      <%= f.text_field :name, class: "w-full border-2 border-black p-2" %>
+    </div>
+  </div>
+  <div class="mt-2">
+    <%= f.check_box :_destroy, class: "mr-2" %>
+    <%= f.label :_destroy, "Supprimer cet ingrédient", class: "uppercase cursor-pointer hover:text-red-600" %>
+  </div>
+</div>
