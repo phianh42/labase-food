@@ -40,3 +40,16 @@ queue:
   production:
     <<: *default
     url: <%= ENV['DATABASE_URL'] %>
+
+cache:
+  development:
+    <<: *default
+    database: labase_food_cache_development
+
+  test:
+    <<: *default
+    database: labase_food_cache_test
+
+  production:
+    <<: *default
+    url: <%= ENV['DATABASE_URL'] %>
