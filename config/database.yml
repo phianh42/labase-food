@@ -14,3 +14,16 @@ test:
 production:
   <<: *default
   url: <%= ENV['DATABASE_URL'] %>
+
+cable:
+  development:
+    <<: *default
+    database: labase_food_cable_development
+
+  test:
+    <<: *default
+    database: labase_food_cable_test
+
+  production:
+    <<: *default
+    url: <%= ENV['DATABASE_URL'] %>
