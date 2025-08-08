@@ -33,6 +33,34 @@ class Recipe < ApplicationRecord
   scope :with_parsed_ingredients, -> { where.not(parsed_ingredients: nil) }
   scope :needs_parsing, -> { where(parsed_ingredients: nil) }
   
+  # Ransack configuration
+  def self.ransackable_attributes(auth_object = nil)
+    %w[title description difficulty preparation_time cooking_time servings created_at updated_at is_public]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[user tags ingredients recipe_steps]
+  end
+
+  def self.search_all_fields(search_term)
+    return none if search_term.blank?
+    
+    # Use LEFT JOINs to include all recipes, even those without ingredients/steps
+    ids = left_joins(:user, :ingredients, :recipe_steps)
+          .where(
+            "recipes.title ILIKE ? OR 
+             recipes.description ILIKE ? OR
+             ingredients.name ILIKE ? OR
+             recipe_steps.instruction ILIKE ? OR
+             users.username ILIKE ?",
+            "%#{search_term}%", "%#{search_term}%", "%#{search_term}%", 
+            "%#{search_term}%", "%#{search_term}%"
+          )
+          .pluck(:id)
+          .uniq
+    
+    where(id: ids)
+  end
   def total_time
     (preparation_time || 0) + (cooking_time || 0)
   end

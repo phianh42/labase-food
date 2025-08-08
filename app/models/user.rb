@@ -14,6 +14,10 @@ class User < ApplicationRecord
   
   validates :username, presence: true, uniqueness: true
 
+  def self.ransackable_attributes(auth_object = nil)
+    %w[username]
+  end
+  
   def admin?
     # Add an admin boolean field to users table
     # rails generate migration AddAdminToUsers admin:boolean

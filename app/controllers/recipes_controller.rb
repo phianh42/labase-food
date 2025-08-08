@@ -5,8 +5,18 @@ class RecipesController < ApplicationController
   before_action :check_owner, only: [:edit, :update, :destroy]
 
   def index
-    @recipes = Recipe.includes(:user, :tags)
+    # Handle search differently to avoid duplicates
+    if search_active?
+      search_term = params[:q][:title_or_description_or_recipe_steps_instruction_or_ingredients_name_or_user_username_cont]
+      @recipes = Recipe.search_all_fields(search_term).includes(:user, :tags, :ingredients)
+      @q = Recipe.ransack() # Empty ransack object for form
+    else
+      # Use ransack for non-search queries (sorting, etc.)
+      @q = Recipe.includes(:user, :tags, :ingredients).ransack(params[:q])
+      @recipes = @q.result
+    end
     
+    # Apply existing filters
     if params[:tag].present?
       @recipes = @recipes.tagged_with(params[:tag])
     end
@@ -22,8 +32,31 @@ class RecipesController < ApplicationController
       @recipes = @recipes.public_recipes unless user_signed_in? && params[:all].present?
     end
     
+    # Handle sorting
+    if params[:q]&.[](:s).present?
+      sort_param = params[:q][:s]
+      case sort_param
+      when 'created_at desc'
+        @recipes = @recipes.order(created_at: :desc)
+      when 'created_at asc'
+        @recipes = @recipes.order(created_at: :asc)
+      when 'title asc'
+        @recipes = @recipes.order(title: :asc)
+      when 'title desc'
+        @recipes = @recipes.order(title: :desc)
+      when 'preparation_time asc'
+        @recipes = @recipes.order(preparation_time: :asc)
+      when 'random'
+        @recipes = @recipes.order(Arel.sql('RANDOM()'))
+      end
+    else
+      @recipes = @recipes.order(Arel.sql('RANDOM()')) # Default random sorting
+    end
+    
     @recipes = @recipes.page(params[:page])
   end
+
+  
 
   def show
     unless @recipe.is_public? || (user_signed_in? && @recipe.user == current_user)
@@ -133,4 +166,9 @@ class RecipesController < ApplicationController
       render json: { error: 'Non autorisé' }, status: :forbidden
     end
   end
+
+  def search_active?
+    params[:q].present? && params[:q][:title_or_description_or_recipe_steps_instruction_or_ingredients_name_or_user_username_cont].present?
+  end
+
 end

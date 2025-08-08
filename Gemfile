@@ -86,3 +86,6 @@ group :development, :test do
 end
 
 gem 'kaminari'
+
+gem 'ransack'
+

@@ -8,4 +8,9 @@ class Ingredient < ApplicationRecord
   ALL_UNITS = METRIC_UNITS + CUSTOM_UNITS
   
   validates :unit, inclusion: { in: ALL_UNITS }, allow_blank: true
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[name]
+  end
+  
 end
