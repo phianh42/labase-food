@@ -28,7 +28,8 @@
               <%= link_to "LABASE FOOD", root_path, class: "text-2xl font-bold tracking-wider" %>
             </div>
             
-            <div class="flex items-center space-x-4">
+            <!-- Menu desktop caché sur mobile -->
+            <div class="hidden sm:flex items-center space-x-4">
               <%= link_to "RECETTES", recipes_path, class: "uppercase hover:underline" %>
               
               <% if user_signed_in? %>
@@ -56,7 +57,32 @@
                 <%= link_to "S'inscrire", new_user_registration_path, class: "uppercase hover:underline" %>
               <% end %>
             </div>
+            
+            <!-- Burger visible sur mobile seulement -->
+            <button onclick="toggleMenu()" class="sm:hidden border-2 border-black px-3 py-2">
+              ☰
+            </button>
           </div>
+        </div>
+        
+        <!-- Menu mobile -->
+        <div id="mobile-menu" style="display: none;" class="sm:hidden px-4 pb-4">
+          <%= link_to "RECETTES", recipes_path, class: "block py-2 uppercase" %>
+          <% if user_signed_in? %>
+            <%= link_to "CRÉER RECETTE", new_recipe_path, class: "block py-2 uppercase" %>
+            <%= link_to "MES RECETTES", recipes_path(my_recipes: true), class: "block py-2 uppercase" %>
+            <%= link_to "REPAS", meals_path, class: "block py-2 uppercase" %>
+            <%= link_to "INVITÉS", guests_path, class: "block py-2 uppercase" %>
+            <% if current_user.admin? %>
+              <%= link_to "INGRÉDIENTS", admin_ingredient_dictionaries_path, class: "block py-2 uppercase" %>
+              <%= link_to "SOUMISSIONS", admin_ingredient_submissions_path, class: "block py-2 uppercase" %>
+            <% end %>
+            <%= link_to current_user.username.upcase, user_path(current_user), class: "block py-2 uppercase" %>
+            <%= link_to "Se déconnecter", destroy_user_session_path, method: :delete, class: "block py-2 uppercase" %>
+          <% else %>
+            <%= link_to "Se connecter", new_user_session_path, class: "block py-2 uppercase" %>
+            <%= link_to "S'inscrire", new_user_registration_path, class: "block py-2 uppercase" %>
+          <% end %>
         </div>
       </nav>
 
@@ -76,5 +102,16 @@
         <%= yield %>
       </main>
     </div>
+    
+    <script>
+      function toggleMenu() {
+        var menu = document.getElementById('mobile-menu');
+        if (menu.style.display === 'none') {
+          menu.style.display = 'block';
+        } else {
+          menu.style.display = 'none';
+        }
+      }
+    </script>
   </body>
 </html>

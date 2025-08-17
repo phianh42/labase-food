@@ -1,51 +1,51 @@
-# Complete recipes/index.html.erb with Search
-
-```erb
 <!-- app/views/recipes/index.html.erb -->
-<div class="mb-8">
-  <h1 class="text-4xl font-bold uppercase mb-6 border-b-4 border-black pb-2">
+<div class="mb-4 md:mb-8">
+  <h1 class="text-2xl md:text-4xl font-bold uppercase mb-4 md:mb-6 border-b-4 border-black pb-2">
     <%= params[:tag].present? ? "Recettes: #{params[:tag]}" : "Recettes" %>
   </h1>
   
-  <!-- Simple Search Form -->
+  <!-- Responsive Search Form -->
   <%= search_form_for @q, url: recipes_path, method: :get, 
-      class: "mb-6", 
+      class: "mb-4 md:mb-6", 
       html: { id: 'recipe-search-form' } do |f| %>
     
-    <div class="border-4 border-black p-4 bg-white">
-      <div class="flex gap-4">
-        <!-- Single comprehensive search field -->
+    <div class="border-4 border-black p-3 md:p-4 bg-white">
+      <!-- Main search row -->
+      <div class="flex gap-2 mb-3">
+        <!-- Search field - takes most space -->
         <div class="flex-1">
           <%= f.search_field :title_or_description_or_recipe_steps_instruction_or_ingredients_name_or_user_username_cont,
-              placeholder: "Rechercher par titre, description, étapes, ingrédients ou auteur...",
+              placeholder: "Rechercher par titre, description, ingrédients...",
               value: params[:q]&.[](:title_or_description_or_recipe_steps_instruction_or_ingredients_name_or_user_username_cont),
-              class: "w-full border-2 border-black p-4 text-lg focus:outline-none focus:border-gray-600",
+              class: "w-full border-2 border-black p-3 md:p-4 text-base md:text-lg focus:outline-none focus:border-gray-600",
               autofocus: true %>
         </div>
         
-        <!-- Search button -->
+        <!-- Search button with icon -->
         <div>
-          <%= f.submit "RECHERCHER", 
-              class: "border-4 border-black px-8 py-4 text-lg uppercase font-bold hover:bg-black hover:text-white cursor-pointer" %>
+          <%= f.submit "🔍", 
+              class: "border-4 border-black px-4 py-3 md:py-4 text-lg md:text-xl hover:bg-black hover:text-white cursor-pointer",
+              title: "Rechercher" %>
         </div>
-        
-        <!-- Sort dropdown (minimal) -->
-        <div class="flex items-center">
-          <%= f.select :s,
-              options_for_select([
-                ['Aléatoire', 'random'],
-                ['Plus récent', 'created_at desc'],
-                ['Plus ancien', 'created_at asc'],
-                ['Titre A-Z', 'title asc'],
-                ['Titre Z-A', 'title desc'],
-                ['Préparation rapide', 'preparation_time asc']
-              ], params[:q]&.[](:s)),
-              { include_blank: false },
-              { 
-                class: "border-2 border-black p-4 text-sm uppercase font-bold",
-                onchange: "this.form.submit();"
-              } %>
-        </div>
+      </div>
+      
+      <!-- Sort dropdown on separate line -->
+      <div class="flex items-center gap-2">
+        <label class="text-xs md:text-sm uppercase font-bold text-gray-700">Trier par:</label>
+        <%= f.select :s,
+            options_for_select([
+              ['Plus récent', 'created_at desc'],
+              ['Plus ancien', 'created_at asc'],
+              ['Titre A-Z', 'title asc'],
+              ['Titre Z-A', 'title desc'],
+              ['Préparation rapide', 'preparation_time asc'],
+              ['Aléatoire', 'random']
+            ], params[:q]&.[](:s)),
+            { include_blank: false },
+            { 
+              class: "border-2 border-black p-2 md:p-3 text-xs md:text-sm uppercase font-bold flex-1 max-w-xs",
+              onchange: "this.form.submit();"
+            } %>
       </div>
       
       <!-- Preserve existing filters -->
@@ -56,42 +56,48 @@
   <% end %>
   
   <!-- Search results info and quick filters -->
-  <div class="mb-6 flex justify-between items-center">
-    <div class="text-sm uppercase">
-      <% if search_active? %>
-        <span class="font-bold"><%= @recipes.total_count %> RÉSULTATS</span>
-        <% search_term = params[:q][:title_or_description_or_recipe_steps_instruction_or_ingredients_name_or_user_username_cont] %>
-        <% if search_term.present? %>
-          pour "<span class="font-bold"><%= search_term %></span>"
+  <div class="mb-4 md:mb-6">
+    <!-- Mobile: Stack results info and filters -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+      <!-- Results info -->
+      <div class="text-sm uppercase">
+        <% if search_active? %>
+          <span class="font-bold"><%= @recipes.total_count %> RÉSULTATS</span>
+          <% search_term = params[:q][:title_or_description_or_recipe_steps_instruction_or_ingredients_name_or_user_username_cont] %>
+          <% if search_term.present? %>
+            <br class="sm:hidden">
+            <span class="block sm:inline">pour "<span class="font-bold"><%= truncate(search_term, length: 20) %></span>"</span>
+          <% end %>
+          <%= link_to "× EFFACER", recipes_path, class: "block sm:inline sm:ml-2 text-red-600 hover:underline mt-1 sm:mt-0" %>
+        <% else %>
+          <span><%= @recipes.total_count %> RECETTES AU TOTAL</span>
         <% end %>
-        <%= link_to "× EFFACER", recipes_path, class: "ml-2 text-red-600 hover:underline" %>
-      <% else %>
-        <span><%= @recipes.total_count %> RECETTES AU TOTAL</span>
-      <% end %>
-    </div>
-    
-    <!-- Quick filter buttons -->
-    <div class="flex gap-2">
-      <%= link_to "TOUTES", recipes_path,
-          class: "text-sm border-2 border-black px-4 py-2 uppercase font-bold hover:bg-black hover:text-white #{'bg-black text-white' unless params[:tag] || params[:category] || params[:my_recipes]}" %>
-      <% if user_signed_in? %>
-        <%= link_to "MES RECETTES", recipes_path(my_recipes: true),
-            class: "text-sm border-2 border-black px-4 py-2 uppercase font-bold hover:bg-black hover:text-white #{'bg-black text-white' if params[:my_recipes]}" %>
-      <% end %>
+      </div>
+      
+      <!-- Quick filter buttons - horizontal scroll on mobile -->
+      <div class="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
+        <%= link_to "TOUTES", recipes_path,
+            class: "whitespace-nowrap text-xs sm:text-sm border-2 border-black px-3 sm:px-4 py-2 uppercase font-bold hover:bg-black hover:text-white #{'bg-black text-white' unless params[:tag] || params[:category] || params[:my_recipes]}" %>
+        <% if user_signed_in? %>
+          <%= link_to "MES RECETTES", recipes_path(my_recipes: true),
+              class: "whitespace-nowrap text-xs sm:text-sm border-2 border-black px-3 sm:px-4 py-2 uppercase font-bold hover:bg-black hover:text-white #{'bg-black text-white' if params[:my_recipes]}" %>
+        <% end %>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Search results -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Responsive Recipe Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
   <% if @recipes.any? %>
     <% @recipes.each do |recipe| %>
       <div class="border-4 border-black relative">
+        <!-- Privacy/Ownership indicators -->
         <% if params[:my_recipes].present? %>
           <!-- In "My Recipes" view: only show privacy indicator -->
           <% unless recipe.is_public? %>
             <div class="absolute top-2 right-2 z-10">
-              <span class="bg-red-600 text-white px-3 py-1 text-xs uppercase font-bold">
+              <span class="bg-red-600 text-white px-2 sm:px-3 py-1 text-xs uppercase font-bold">
                 PRIVÉE
               </span>
             </div>
@@ -100,41 +106,50 @@
           <!-- In public view: show "MA RECETTE" for own recipes -->
           <% if user_signed_in? && recipe.user == current_user %>
             <div class="absolute top-2 right-2 z-10">
-              <span class="bg-black text-white px-3 py-1 text-xs uppercase font-bold">
+              <span class="bg-black text-white px-2 sm:px-3 py-1 text-xs uppercase font-bold">
                 MA RECETTE
               </span>
             </div>
           <% end %>
         <% end %>
         
+        <!-- Recipe image -->
         <% if recipe.image.attached? %>
-          <%= image_tag recipe.image, class: "w-full h-48 object-cover" %>
+          <%= image_tag recipe.image, class: "w-full h-40 sm:h-48 object-cover" %>
         <% else %>
-          <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-            <span class="text-4xl uppercase">NO IMAGE</span>
+          <div class="w-full h-40 sm:h-48 bg-gray-200 flex items-center justify-center">
+            <span class="text-2xl sm:text-4xl uppercase">NO IMAGE</span>
           </div>
         <% end %>
         
-        <div class="p-4">
-          <h2 class="text-xl font-bold uppercase mb-2">
+        <!-- Recipe content -->
+        <div class="p-3 sm:p-4">
+          <!-- Recipe title -->
+          <h2 class="text-lg sm:text-xl font-bold uppercase mb-2 line-clamp-2">
             <%= link_to recipe.title, recipe, class: "hover:underline" %>
           </h2>
           
-          <div class="text-sm uppercase mb-2 text-gray-600">
-            PAR <%= link_to recipe.user.username, recipes_path(q: { title_or_description_or_recipe_steps_instruction_or_ingredients_name_or_user_username_cont: recipe.user.username }), 
-                    class: "hover:underline text-black" %> 
-            | <%= recipe.created_at.strftime("%d/%m/%Y") %>
+          <!-- Author and date -->
+          <div class="text-xs sm:text-sm uppercase mb-2 text-gray-600">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0">
+              <span>PAR <%= link_to recipe.user.username, 
+                       recipes_path(q: { title_or_description_or_recipe_steps_instruction_or_ingredients_name_or_user_username_cont: recipe.user.username }), 
+                       class: "hover:underline text-black" %></span>
+              <span class="hidden sm:inline sm:mx-2">|</span>
+              <span><%= recipe.created_at.strftime("%d/%m/%Y") %></span>
+            </div>
           </div>
           
-          <div class="flex gap-4 text-sm uppercase mb-2">
+          <!-- Recipe timing and difficulty -->
+          <div class="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm uppercase mb-2">
             <% if recipe.preparation_time.present? %>
-              <span>PREP: <%= recipe.preparation_time %>MIN</span>
+              <span class="whitespace-nowrap">PREP: <%= recipe.preparation_time %>MIN</span>
             <% end %>
             <% if recipe.cooking_time.present? %>
-              <span>COOK: <%= recipe.cooking_time %>MIN</span>
+              <span class="whitespace-nowrap">COOK: <%= recipe.cooking_time %>MIN</span>
             <% end %>
             <% if recipe.difficulty.present? %>
-              <span class="<%= difficulty_color_class(recipe.difficulty) %>">
+              <span class="whitespace-nowrap <%= difficulty_color_class(recipe.difficulty) %>">
                 <%= recipe.difficulty.upcase %>
               </span>
             <% end %>
@@ -142,22 +157,23 @@
           
           <!-- Recipe description preview (if search matches) -->
           <% if search_active? && recipe.description.present? %>
-            <div class="text-sm mb-2 text-gray-700">
-              <%= truncate(strip_tags(recipe.description), length: 100) %>
+            <div class="text-xs sm:text-sm mb-2 text-gray-700 line-clamp-3">
+              <%= truncate(strip_tags(recipe.description), length: 80) %>
             </div>
           <% end %>
           
           <!-- Recipe tags -->
           <% if recipe.tags.any? %>
             <div class="flex flex-wrap gap-1 mt-2">
-              <% recipe.tags.limit(3).each do |tag| %>
+              <% recipe.tags.limit(2).each do |tag| %>
                 <span class="bg-gray-800 text-white px-2 py-1 text-xs uppercase">
-                  <%= link_to tag.name, recipes_path(tag: tag.name), class: "text-white hover:underline" %>
+                  <%= link_to truncate(tag.name, length: 12), recipes_path(tag: tag.name), 
+                      class: "text-white hover:underline" %>
                 </span>
               <% end %>
-              <% if recipe.tags.count > 3 %>
+              <% if recipe.tags.count > 2 %>
                 <span class="text-xs text-gray-600 px-2 py-1">
-                  +<%= recipe.tags.count - 3 %>
+                  +<%= recipe.tags.count - 2 %>
                 </span>
               <% end %>
             </div>
@@ -165,11 +181,11 @@
           
           <!-- Action buttons for own recipes -->
           <% if user_signed_in? && recipe.user == current_user %>
-            <div class="flex gap-2 mt-3">
+            <div class="flex flex-col sm:flex-row gap-2 mt-3">
               <%= link_to "MODIFIER", edit_recipe_path(recipe), 
-                  class: "text-xs border border-black px-2 py-1 uppercase hover:bg-black hover:text-white" %>
+                  class: "text-center text-xs border border-black px-2 py-1 uppercase hover:bg-black hover:text-white" %>
               <%= link_to "VOIR", recipe, 
-                  class: "text-xs border border-gray-600 px-2 py-1 uppercase hover:bg-gray-600 hover:text-white" %>
+                  class: "text-center text-xs border border-gray-600 px-2 py-1 uppercase hover:bg-gray-600 hover:text-white" %>
             </div>
           <% end %>
         </div>
@@ -177,24 +193,58 @@
     <% end %>
   <% else %>
     <!-- No results -->
-    <div class="col-span-full text-center border-4 border-black p-12">
-      <h3 class="text-2xl font-bold uppercase mb-4">AUCUNE RECETTE TROUVÉE</h3>
+    <div class="col-span-full text-center border-4 border-black p-6 md:p-12">
+      <h3 class="text-xl md:text-2xl font-bold uppercase mb-4">AUCUNE RECETTE TROUVÉE</h3>
       <% if search_active? %>
-        <p class="mb-4">Essayez un autre terme de recherche</p>
+        <p class="mb-4 text-sm md:text-base">Essayez un autre terme de recherche</p>
         <%= link_to "VOIR TOUTES LES RECETTES", recipes_path,
-            class: "border-2 border-black px-6 py-3 uppercase font-bold hover:bg-black hover:text-white" %>
+            class: "inline-block border-2 border-black px-4 md:px-6 py-2 md:py-3 text-sm md:text-base uppercase font-bold hover:bg-black hover:text-white" %>
       <% else %>
-        <p class="mb-4">Aucune recette disponible</p>
+        <p class="mb-4 text-sm md:text-base">Aucune recette disponible</p>
         <% if user_signed_in? %>
           <%= link_to "CRÉER UNE RECETTE", new_recipe_path,
-              class: "border-2 border-black px-6 py-3 uppercase font-bold hover:bg-black hover:text-white" %>
+              class: "inline-block border-2 border-black px-4 md:px-6 py-2 md:py-3 text-sm md:text-base uppercase font-bold hover:bg-black hover:text-white" %>
         <% end %>
       <% end %>
     </div>
   <% end %>
 </div>
 
-<div class="mt-8 flex justify-center">
+<!-- Responsive pagination -->
+<div class="mt-6 md:mt-8 flex justify-center">
   <%= paginate @recipes if respond_to?(:paginate) %>
 </div>
-```
+
+<!-- Add mobile-specific styles -->
+<style>
+  /* Line clamp utilities for text truncation */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Ensure horizontal scroll works on mobile */
+  @media (max-width: 640px) {
+    .overflow-x-auto {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+  
+  /* Hide scrollbar for quick filters on mobile while keeping functionality */
+  .overflow-x-auto::-webkit-scrollbar {
+    display: none;
+  }
+  .overflow-x-auto {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>
